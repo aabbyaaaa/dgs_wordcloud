@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>實驗室產品文字雲分析工具</title>
+    <style>
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        input[type="number"] {
+            width: 60px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .word-freq-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .word-freq-table th, .word-freq-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .word-freq-table th {
+            background-color: #f2f2f2;
+        }
+        .word-freq-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .table-container {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        .tag-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 20px;
+            justify-content: center;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        .tag {
+            padding: 5px 10px;
+            background-color: #3498db;
+            color: white;
+            border-radius: 15px;
+            text-align: center;
+            margin: 5px;
+            display: inline-block;
+        }
+        .instructions {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .instructions ul {
+            margin-top: 10px;
+            padding-left: 20px;
+        }
+        .predefined-terms-container {
+            margin-top: 20px;
+        }
+        .predefined-terms {
+            height: 150px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .predefined-term {
+            display: inline-block;
+            background-color: #e0e0e0;
+            padding: 3px 8px;
+            margin: 3px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+        .results-section {
+            margin-top: 30px;
+            display: none;
+        }
+        .tab-buttons {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        .tab-button {
+            padding: 8px 15px;
+            background-color: #ddd;
+            border: none;
+            cursor: pointer;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab-button.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>實驗室產品文字雲分析工具</h1>
+        
+        <div class="form-group">
+            <label for="textInput">文本內容</label>
+            <textarea id="textInput" rows="10" placeholder="輸入或貼上要分析的文本..."></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="stopWords">停用詞（以逗號分隔）</label>
+            <textarea id="stopWords" rows="4">圖片訊息, 貼圖訊息, 檔案訊息, 影片訊息, emoji, umm, usagi, casual, Cony, Please, Hi, 您好, 你好, 謝謝, 好的, 了解, 請問, 麻煩, 不好意思, 收到, 感謝, 哈囉, 再麻煩, 請, 好, 嗎, 呢, 吧, 啊, 喔, 唷, 哦, 嗯, 有, 是, 了, 的, 在, 們, 我, 您, 你, 想, 需要, 可以, 不可以, 那, 這, 這個, 那個, 如何, 多少, 現在, 目前, 幾個, 是否, 可否, 否則, 不然, 要, 要求, 希望, 期望, 先, 後, 之前, 之後, 以後, 以前, 一下, 先幫, 現在, 等, 等等, 說, 報價, 價格, 價錢, 成本, 估價單, 報價單, 訂單, 統編, 統一編號, 發票, 付款, 匯款, 運費, 運送, 寄送, 出貨, 交貨, 交期, 訂購, 購買, 下單, 採購, 後五碼, 帳號, 付款方式, 貨到付款, 現金, 刷卡, 數量, 未稅, 含稅, 公司, 型號, 貨號, 規格, 一盒, 一箱, 一包, 盒, 箱, 支, 個, 台, 件, 片, 地址, 電話, 手機, 聯絡人, 收件人, 收件地址, 分機, 信箱, 郵件, 傳真, 台北, 台中, 台南, 高雄, 新北, 公司, 股份有限公司, 有限公司, 實業, 辦公室, 實驗室, 研究室, 麻煩您了, 麻煩了, 謝謝您, 好的謝謝, 不好意思麻煩, 請問有, 還是, 或是, 看看, 想想, 知道, 了解, 確認, 提供, 有空, 不用, 可用, 我們, 我這邊, 你們, 您們, 那邊, 這邊, 什麼, 怎麼, http, https, www, com, tw, cc, mail, email, jpg, dgs, ml, ML, mm, cm, g, kg, L, um, 公分, 毫米, 微米, 今天, 明天, 昨天, 下午, 上午, 晚上, 早上, 下週, 下個月, 一個, 這樣, 那樣, 如此, 之類, 各種, 各個, 各, 每, 所有</textarea>
+        </div>
+        
+        <div class="predefined-terms-container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <label for="predefinedTerms"><strong>預先定義的產品詞彙</strong> (可編輯)</label>
+                <div>
+                    <button id="expandTermsBtn" style="padding: 5px 10px; font-size: 12px;">展開/收起</button>
+                </div>
+            </div>
+            <div id="predefinedTermsContainer" class="predefined-terms" style="display: none;">
+                <textarea id="predefinedTerms" style="width: 100%; height: 100%; border: none; background: transparent; resize: none;">PYREX, ADVANTEC, DIGISYSTEM, WHATMAN, JENCO, DLAB, TERUMO, EPPENDORF, BELART, FLOWER, BATO, TFA, KAPTON, FRESHLIANCE, CHEMIST, BD, 吸管, 濾紙, 濾膜, 血清瓶, 離心管, 微量離心管, 培養皿, 燒杯, 玻璃棒, 玻璃瓶, 茶色瓶, 矽膠管, 塑膠, 針頭, 注射筒, 乳膠手套, 攪拌機, 攪拌器, 攪拌棒, 磁石攪拌, 加熱攪拌器, 溫度計, 數字式溫度計, pH計, 酸鹼計, 微量天秤, 校正液, 電極, 探棒, 滅菌, 高壓滅菌鍋, 洗眼站, 瓶架, 採樣器, 採樣袋, 實驗, 廢液桶, 標準型, 無粉, 墊片, 透氣蓋, 三角瓶, 磨砂口, 試管, 探針, 水活性, 天秤, 微量吸管, 蠕動幫浦, 溫濕度計, 錶玻璃, 硝酸, 雙氧水, 玻纖</textarea>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="analyzeBtn">分析文本</button>
+            <div style="margin-left: 15px;">
+                <label for="minFreq" style="display: inline;">最小頻率:</label>
+                <input type="number" id="minFreq" min="1" value="2" style="margin-left: 5px;">
+            </div>
+        </div>
+        
+        <div id="resultsSection" class="results-section">
+            <div class="tab-buttons">
+                <button class="tab-button active" data-tab="frequencyTab">詞頻統計</button>
+                <button class="tab-button" data-tab="cloudTab">文字雲</button>
+            </div>
+            
+            <div id="frequencyTab" class="tab-content active">
+                <h2>詞頻統計 <span id="wordCount"></span></h2>
+                <div class="table-container">
+                    <table id="wordFreqTable" class="word-freq-table">
+                        <thead>
+                            <tr>
+                                <th>詞彙</th>
+                                <th>頻率</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="cloudTab" class="tab-content">
+                <h2>文字雲視覺化</h2>
+                <div id="wordCloud" class="tag-cloud"></div>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>使用說明:</h3>
+            <ul>
+                <li>將要分析的文本粘貼到文本框中</li>
+                <li>可以自定義停用詞列表，以逗號分隔</li>
+                <li>可以編輯預定義的產品詞彙列表，以增加或減少識別的產品詞</li>
+                <li>點擊「分析文本」按鈕開始處理</li>
+                <li>調整最小頻率可以過濾出現頻率較低的詞彙</li>
+                <li>詞頻統計表顯示所有識別出的詞彙及其頻率</li>
+                <li>文字雲視覺化詞彙出現頻率，詞彙越大表示出現頻率越高</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // 預設文本
+        const defaultText = `陳宛均測試ＡＰＩ，不要理我
+[圖片訊息]
+(umm)
+陳宛均測試ＡＰＩ，完成。都不要理我
+[貼圖訊息]
+黃老闆您好，想請問一下有無蠕動幫浦YZ15 #14 內徑1.6mm 矽膠軟管嗎～謝謝
+您好，想請問一下有無蠕動幫浦YZ15 #14 內徑1.6mm 矽膠軟管嗎～謝謝
+[圖片訊息]
+我找到快速報價了～但是我不知道他要配哪個蓋子
+公司: 晨暉生技股份有限公司 統編:28708250 聯絡人: 陳宥佐 電話: 02-27929568
+再麻煩提供報價單 可LINE 或 mail: dennis.chen@sunway.cc
+好的謝謝
+1515x價格？
+配13號管
+"我還有幾項小東西要買，
+可以順便嗎？"
+請問有問到了嗎
+這台
+[貼圖訊息]
+"您好，想購買
+DLAB 加熱攪拌器 
+MS7-H550-PRO
+請問可以幫我們提供報價單嗎？"
+"單位名稱:中興大學化工系
+地址：台中市南區國光路250號-化工大樓5樓之507
+統編：52024101"
+您老
+您好~詢價瓷坩鍋  280ML.500ML 含蓋
+"請問
+BK-733
+這個有現貨?"
+您好
+請問您們血清瓶是否含蓋子呢？
+[圖片訊息]
+這個牌子~
+好的
+謝謝
+[貼圖訊息]
+先幫我們留著
+十七萬 我有看錯嗎
+[貼圖訊息]
+有500ML的嗎
+好的
+謝謝你
+280ML的交期是多久呢
+一箱有幾個
+價錢多少
+是塑膠哦
+收到 想請問 如果買兩盒 運費應該不會增加吧? 還是能請您開2盒的估價單
+另外 運費低溫的部分 可以幫我拿掉嗎 怕採購部門會問 為什麼空的採血管需要低溫運送
+好貴
+有辦法再便宜嗎
+"DG1404-10
+經濟型 茶色廣口瓶 磨砂口 60ml   x2個
+
+AS1523-01000
+PYREX 寬口血清瓶 1L GLS80蓋 x3個
+
+AS1523-00500
+PYREX 寬口血清瓶 500ml GLS80蓋 x1個
+
+AS1015-00050
+PYREX 高型燒杯 具嘴 50ml x1個
+
+AS1015-00100
+PYREX 高型燒杯 具嘴 100ml x1個
+
+AS1015-01000
+PYREX 高型燒杯 具嘴 1L x1個
+
+AS1523-00250
+PYREX 寬口血清瓶 250ml GLS80蓋 x2個`;
+
+        // 載入預設文本
+        document.getElementById('textInput').value = defaultText;
+
+        // 設置事件監聽器
+        document.getElementById('analyzeBtn').addEventListener('click', analyzeText);
+        document.getElementById('minFreq').addEventListener('change', updateWordCloud);
+        document.getElementById('expandTermsBtn').addEventListener('click', function() {
+            const container = document.getElementById('predefinedTermsContainer');
+            container.style.display = container.style.display === 'none' ? 'block' : 'none';
+        });
+
+        // 設置頁籤切換
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', function() {
+                // 移除所有頁籤和內容的活動狀態
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                
+                // 設置當前頁籤和內容為活動狀態
+                this.classList.add('active');
+                document.getElementById(this.dataset.tab).classList.add('active');
+            });
+        });
+
+        // 存儲分析結果
+        let wordFrequencies = [];
+
+        function analyzeText() {
+            const text = document.getElementById('textInput').value;
+            if (!text) {
+                alert('請輸入要分析的文本');
+                return;
+            }
+            
+            // 準備停用詞
+            const stopWordsInput = document.getElementById('stopWords').value;
+            const stopWordsArray = stopWordsInput
+                .split(',')
+                .map(word => word.trim())
+                .filter(word => word.length > 0);
+            
+            // 獲取預先定義的產品詞彙
+            const predefinedTermsInput = document.getElementById('predefinedTerms').value;
+            const predefinedTermsArray = predefinedTermsInput
+                .split(',')
+                .map(term => term.trim())
+                .filter(term => term.length > 0);
+            
+            // 1. 清理文本
+            let cleanedText = text.replace(/[\r\n]+/g, ' ');
+            cleanedText = cleanedText.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()\[\]'"@?]/g, ' ');
+            
+            // 2. 移除停用詞
+            for (const word of stopWordsArray) {
+                try {
+                    const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const pattern = new RegExp(`\\b${escapedWord}\\b`, 'gi');
+                    cleanedText = cleanedText.replace(pattern, ' ');
+                } catch (e) {
+                    console.error(`Error with stop word: ${word}`, e);
+                }
+            }
+            
+            // 3. 移除單獨的數字，但保留產品代碼
+            cleanedText = cleanedText.replace(/\b\d+\b/g, ' ');
+            
+            // 4. 移除單個字符
+            cleanedText = cleanedText.replace(/\b[a-zA-Z]\b/g, ' ');
+            
+            // 5. 移除多餘空格
+            cleanedText = cleanedText.replace(/\s+/g, ' ').trim();
+            
+            // 抽取有意義的詞彙
+            const meaningfulTerms = [];
+            
+            // A. 抽取產品代碼 (例如 AS1523, DP-4330007)
+            const productCodeRegex = /\b[A-Z]{1,4}[-][A-Z0-9]{3,12}\b|\b[A-Z]{2,5}[0-9]{2,6}\b/g;
+            let match;
+            while ((match = productCodeRegex.exec(cleanedText)) !== null) {
+                if (!stopWordsArray.includes(match[0])) {
+                    meaningfulTerms.push(match[0]);
+                }
+            }
+            
+            // B. 查找預先定義的品牌名稱和產品詞彙
+            for (const term of predefinedTermsArray) {
+                try {
+                    const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const termRegex = new RegExp(`${escapedTerm}`, 'gi');
+                    while ((match = termRegex.exec(cleanedText)) !== null) {
+                        meaningfulTerms.push(match[0]);
+                    }
+                } catch (e) {
+                    console.error(`Error with predefined term: ${term}`, e);
+                }
+            }
+            
+            // C. 抽取中文產品名稱 (至少2個字符)
+            const chineseProductRegex = /[\u4e00-\u9fa5]{2,}[a-zA-Z]*/g;
+            while ((match = chineseProductRegex.exec(cleanedText)) !== null) {
+                // 檢查是否在停用詞中
+                if (!stopWordsArray.includes(match[0])) {
+                    // 檢查是否是預先定義的產品詞彙之一
+                    const lowerTerm = match[0].toLowerCase();
+                    if (predefinedTermsArray.some(term => lowerTerm.includes(term.toLowerCase()))) {
+                        meaningfulTerms.push(match[0]);
+                    }
+                }
+            }
+            
+            // 計算詞頻
+            const termCounts = {};
+            meaningfulTerms.forEach(term => {
+                termCounts[term] = (termCounts[term] || 0) + 1;
+            });
+            
+            // 轉換為數組並排序
+            wordFrequencies = Object.entries(termCounts)
+                .map(([text, value]) => ({ text, value }))
+                .sort((a, b) => b.value - a.value);
+            
+            // 顯示結果
+            displayResults();
+            
+            // 顯示結果區域
+            document.getElementById('resultsSection').style.display = 'block';
+        }
+
+        function displayResults() {
+            // 更新詞頻表格
+            const tableBody = document.getElementById('wordFreqTable').getElementsByTagName('tbody')[0];
+            tableBody.innerHTML = '';
+            
+            wordFrequencies.forEach(item => {
+                const row = tableBody.insertRow();
+                const cell1 = row.insertCell(0);
+                const cell2 = row.insertCell(1);
+                cell1.textContent = item.text;
+                cell2.textContent = item.value;
+            });
+            
+            // 更新詞彙計數
+            document.getElementById('wordCount').textContent = `(共 ${wordFrequencies.length} 個詞彙)`;
+            
+            // 生成文字雲
+            updateWordCloud();
+        }
+
+        function updateWordCloud() {
+            const minFreq = parseInt(document.getElementById('minFreq').value) || 1;
+            const filteredWords = wordFrequencies.filter(item => item.value >= minFreq);
+            
+            // 清空文字雲容器
+            const cloudContainer = document.getElementById('wordCloud');
+            cloudContainer.innerHTML = '';
+            
+            if (filteredWords.length === 0) {
+                cloudContainer.textContent = '沒有符合最小頻率要求的詞彙';
+                return;
+            }
+            
+            // 找出最大頻率，用於計算字體大小
+            const maxFreq = Math.max(...filteredWords.map(item => item.value));
+            
+            // 創建簡易文字雲
+            filteredWords.forEach(word => {
+                const fontSize = Math.max(14, Math.round(14 + (word.value / maxFreq) * 24)); // 14px - 38px
+                
+                // 創建標籤元素
+                const tag = document.createElement('div');
+                tag.className = 'tag';
+                tag.textContent = word.text;
+                tag.style.fontSize = `${fontSize}px`;
+                
+                // 根據頻率設置不同的顏色
+                const hue = Math.floor(210 + (word.value / maxFreq) * 150); // 色相從210到360
+                tag.style.backgroundColor = `hsl(${hue}, 70%, 50%)`;
+                
+                // 根據詞頻設置尺寸
+                const size = Math.max(30, 30 + (word.value / maxFreq) * 100);
+                tag.style.minWidth = `${size}px`;
+                
+                cloudContainer.appendChild(tag);
+            });
+        }
+    </script>
+</body>
+</html>
